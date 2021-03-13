@@ -11,7 +11,11 @@ module.exports = {
      */
     async run(client, message, args) {
         if (!message.member.voice)  return message.reply('음성채널에 들어가있어야 해요!');
-        let queue = client.queue.get(`${message.guild.id}`);
+        let queue = client.queue.has(`${message.guild.id}`);
+        if (queue)
+            queue = client.queue.get(`${message.guild.id}`);
+        else
+            return message.reply('... **아무것도 없네요!**');
         if (queue.musics.length <= 0) return message.reply('재생중인 음악이 없어요!');
         if (!queue.dispatcher)  return message.reply('재생중인 음악이 없어요!');
         if (queue.dispatcher.paused) return message.reply('이미 일시정지 중이에요!');

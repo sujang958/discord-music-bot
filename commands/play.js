@@ -11,16 +11,13 @@ module.exports = {
      */
     async run(client, message, args) {
         if (!message.member.voice)  return message.reply('음성채널에 들어가있어야 해요!');
-        let queue = client.queue.get(`${message.guild.id}`);
-        
-        if (queue.onListen)   return message.reply('이미 재생중이에요!');
-        if (queue.musics.length <= 0)    return message.reply('추가된 음악이 없어요!');
-
+        if (!client.queue.has(message.guild.id))    return message.reply('... **아무것도 없네요!**');
         message.member.voice.channel.join().then(
             async connection => {
+                let queue = client.queue.get(message.guild.id);
                 queue.connection = connection;
                 queue.vChannel = message.member.voice;
-                client.music.play(queue, message);
+                client.music.play(client.queue, message);
             }
         );
     }

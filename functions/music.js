@@ -13,34 +13,40 @@ module.exports = {
      * @param {import('discord.js').Message} message 
      */
     async play(queue, message) {
-        queue.onListen = true;
-        let opusStream = await ytdl(queue.musics[0].url);
-        let dispatcher = queue.connection.play(opusStream, {type: 'opus'});
+        if (!queue.has(message.guild.id))   return message.reply('... **아무것도 없네요!**');
+        let guildQueue = queue.get(message.guild.id);
+        if (guildQueue.musics.length <= 0)   return message.reply('... **아무것도 없네요!**');
+        guildQueue.onListen = true;
+
+        let opusStream = await ytdl(guildQueue.musics[0].url);
+        /**
+         * @type {import('discord.js').StreamDispatcher}
+         */
+        guildQueue.dispatcher = guildQueue.connection.play(opusStream, {type: 'opus'});
 
         let embed = new MessageEmbed()
-        .setTitle(`${queue.musics[0].title}\u200b`)
+        .setTitle(`${guildQueue.musics[0].title}\u200b`)
         .setColor('GREEN')
         .setDescription(`음악을 재생할께요!`)
         .setTimestamp();
         message.channel.send(embed);
 
-        dispatcher.on('finish', () => {
-            queue.musics.shift();
+        guildQueue.dispatcher.on('finish', () => {
+            guildQueue.musics.shift();
             console.log('end');
-            if (queue.musics[0]) {
+            if (guildQueue.musics[0]) {
                 this.play(queue, message);
             } else {
-                queue.vChannel.channel.leave();
-                queue.dispatcher.destroy();
-                queue.musics = [];
-                queue.dispatcher = null;
-                queue.connection = null;
-                queue.onListen = false;
+                guildQueue.vChannel.channel.leave();
+                guildQueue.dispatcher.destroy();
+                guildQueue.musics = [];
+                guildQueue.dispatcher = null;
+                guildQueue.connection = null;
+                guildQueue.onListen = false;
+                guildQueue.vChannel = null;
                 return message.channel.send('모든 음악을 재생했어요! 그러면 이제 가볼께요!');
             }
         });
-
-        queue.dispatcher = dispatcher;
     },
     /**
      * 
@@ -56,6 +62,7 @@ module.exports = {
                 musics: [],
                 connection: null,
                 dispatcher: null,
+                vChannel: null,
             });
 
             queue = queue.get(`${message.guild.id}`);
@@ -169,12 +176,12 @@ module.exports = {
         }
         for (let i in queue.musics) {
             if (queue.dispatcher) {
-                embedJSON.description = `현재 재생 노래: ${queue.musics[0].title.slice(0, 20)}...`
+                embedJSON.description = `현재 재생 노래: ${queue.musics[0].title}`
             }
             var username = message.guild.members.cache.get(`${queue.musics[0].user}`);
             username = username.user.username;
             embedJSON.fields.push({
-                name: `${queue.musics[i].title.slice(0, 20)}`,
+                name: `${queue.musics[i].title}`,
                 value: `신청자: ${username}`
             });
         }
@@ -238,12 +245,55 @@ module.exports = {
      */
     async resume(queue, message) {
         if (!message.member.voice)  return message.reply('음성채널에 들어가있어야 해요!');
-        queue = client.queue.get(`${message.guild.id}`);
+        queue = queue.has(`${message.guild.id}`);
+        if (queue)
+            queue = queue.get(`${message.guild.id}`);
+        else
+            return message.reply('... **아무것도 없네요!**');
         if (queue.musics.length <= 0) return message.reply('재생중인 음악이 없어요!');
         if (!queue.dispatcher)  return message.reply('재생중인 음악이 없어요!');
         if (!queue.dispatcher.paused) return message.reply('이미 재생중이에요!');
         
         queue.dispatcher.resume();
         message.reply('노래를 재생할께요!');
+    },
+    /**
+     * @param {Map} queue 
+     * @param {import('discord.js').Message} message 
+     */
+    async shuffle(queue, message) {
+        if (!queue.has(message.guild.id))
+            return message.reply('... **아무것도 없네요!**');
+        queue = queue.get(message.guild.id);
+        if (!queue.musics)
+            return message.reply('... **아무것도 없네요!**');
+        if (queue.musics.length <= 1)
+            return message.reply('대기열에 추가된 노래가 2개 이상이여야 해요!');
+        if (!queue.dispatcher)
+            return message.reply('재생중인 노래가 없네요!');
+        if (message.member.hasPermission('MUTE_MEMBERS'))
+            return message.reply('맴버 뮤트 권한이 있어야해요...');
+
+        queue.musics = shuffle(queue.musics);
+        queue.dispatcher.end();
+        message.reply('섞었어요!');
     }
+}
+
+/**
+ * @breif Shuffle Array
+ * @param {Array} array 
+ * @returns {Array} array
+ */
+function shuffle(array) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+    while (0 !== currentIndex) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+      temporaryValue = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex] = temporaryValue;
+    }
+  
+    return array;
 }

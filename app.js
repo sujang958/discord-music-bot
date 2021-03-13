@@ -65,7 +65,24 @@ console.table(tableData);
 
 client.on("ready", () => {
     console.log(`${client.user.tag} 에 로그인됨`);
-    client.user.setActivity('안녕하세요!');
+    setInterval(() => {
+        switch (Math.floor(Math.random() * 4)) {
+            case 0:
+                client.user.setActivity(`${client.ws.ping} ms | //도움`);
+                break;
+            case 1:
+                client.user.setActivity(`${client.guilds.cache.size} 서버 | //도움`);
+                break;
+            case 2:
+                client.user.setActivity(`${client.users.cache.size} 유저 | //도움`);
+                break;
+            case 3:
+                client.user.setActivity(`맨션 | //도움`, {
+                    type: 'WATCHING'
+                });
+                break;
+        }
+    }, 10000);
 });
 
 client.once("reconnecting", () => {

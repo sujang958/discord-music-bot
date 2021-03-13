@@ -275,7 +275,7 @@ module.exports = {
         if (!queue.dispatcher)
             return message.reply('재생중인 노래가 없네요!');
         if (message.member.hasPermission('ADMINISTRATOR'))
-            return message.reply('맴버 뮤트 권한이 있어야해요...');
+            return message.reply('관리자 권한이 있어야해요...');
 
         queue.musics = shuffle(queue.musics);
         queue.dispatcher.end();

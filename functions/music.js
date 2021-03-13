@@ -32,7 +32,11 @@ module.exports = {
         message.channel.send(embed);
 
         guildQueue.dispatcher.on('finish', () => {
-            guildQueue.musics.shift();
+            if (!guildQueue.loop)
+                guildQueue.musics.shift();
+            else
+                guildQueue.musics.push(guildQueue.musics.shift());
+            
             console.log('end');
             if (guildQueue.musics[0]) {
                 this.play(queue, message);
@@ -116,6 +120,7 @@ module.exports = {
                     queue.dispatcher = null;
                     queue.connection = null;
                     queue.onListen = false;
+                    queue.loop = false;
                     return message.reply('음악을 정지하고 대기열을 초기화 했어요!');
                 }     
             });
@@ -225,11 +230,11 @@ module.exports = {
      * @param {Map} queue 
      * @param {import('discord.js').Message} message 
      */
-    async volume(queue, message) {
+    async volume(queue, message, args) {
         if (!message.member.voice)  return message.reply('음성채널에 들어가있어야 해요!');
         if (!queue.has(message.guild.id)) return message.reply('재생중인 음악이 없어요!');
         queue = queue.get(`${message.guild.id}`);
-        if (!queue.has('musics')) return message.reply('재생중인 음악이 없어요!');
+        if (!queue.musics) return message.reply('재생중인 음악이 없어요!');
         if (queue.musics.length <= 0) return message.reply('재생중인 음악이 없어요!');
         if (!queue.dispatcher)  return message.reply('재생중인 음악이 없어요!');
         if (isNaN(args[0])) return message.reply('숫자를 입력해야돼요!');
@@ -277,6 +282,25 @@ module.exports = {
         queue.musics = shuffle(queue.musics);
         queue.dispatcher.end();
         message.reply('섞었어요!');
+    },
+    /**
+     * @param {Map} queue 
+     * @param {import('discord.js').Message} message 
+     */
+    async loop(queue, message) {
+        if (!queue.has(message.guild.id))
+            return message.reply('... **아무것도 없네요!**');
+        queue = queue.get(message.guild.id);
+        if (!queue.musics)
+            return message.reply('... **아무것도 없네요!**');
+        if (!queue.dispatcher)
+            return message.reply('재생중인 노래가 없네요!');
+        if (queue.hasOwnProperty('loop'))
+            if (queue.loop)
+                return message.reply('이미 반복중인데에?');
+
+        queue.loop = true;
+        message.reply('대기열에 추가된 노래들을 반복할께요!');
     }
 }
 

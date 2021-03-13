@@ -10,6 +10,6 @@ module.exports = {
      * @param {Array} args 
      */
     async run(client, message, args) {
-        client.music.volume(queue, message);
+        client.music.volume(client.queue, message, args);
     }
 }

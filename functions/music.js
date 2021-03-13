@@ -274,7 +274,7 @@ module.exports = {
             return message.reply('대기열에 추가된 노래가 2개 이상이여야 해요!');
         if (!queue.dispatcher)
             return message.reply('재생중인 노래가 없네요!');
-        if (message.member.hasPermission('MUTE_MEMBERS'))
+        if (message.member.hasPermission('ADMINISTRATOR'))
             return message.reply('맴버 뮤트 권한이 있어야해요...');
 
         queue.musics = shuffle(queue.musics);

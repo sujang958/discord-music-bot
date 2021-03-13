@@ -23,6 +23,7 @@ client.commands = new Discord.Collection();
 client.aliases = new Discord.Collection();
 client.queue = new Map();
 client.music = music;
+client.devs = process.env.DEVS.split(',');
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 // Set bot command

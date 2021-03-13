@@ -37,7 +37,7 @@ module.exports = {
       const embed = new MessageEmbed()
         .setTitle('코드 실행')
         .addField('입력', '```\n' + _str + '\n```')
-        .addField('출력', '```\n' + result.replace(`${process.env.TOKEN}`, "TOP SECRET") + '\n```')
+        .addField('출력', '```\n' + result.replace(`${client.token}`, "TOP SECRET") + '\n```')
       embed.setColor(error.occured ? 'RED' : 'GREEN')
 
       return m.edit({ content: '', embed })

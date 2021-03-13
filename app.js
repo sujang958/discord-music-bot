@@ -82,6 +82,9 @@ client.on('message', async message => {
     if (message.author.bot) return;
     if (!message.channel.guild) return;
     if (!message.content.startsWith(process.env.PREFIX)) return;
+    
+    if (!message.guild.me.hasPermission('CONNECT') || !message.guild.me.hasPermission('SPEAK') || message.guild.me.hasPermission('SEND_MESSAGES')) return;
+    // console.log(message.guild.me.hasPermission('37056320'))
 
     const args = message.content.slice(process.env.PREFIX.length)
     .trim()

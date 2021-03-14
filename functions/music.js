@@ -18,11 +18,17 @@ module.exports = {
         if (guildQueue.musics.length <= 0)   return message.reply('... **아무것도 없네요!**');
         guildQueue.onListen = true;
 
+        let volume = 0;
+        if (guildQueue.volume)
+            volume = guildQueue.volume;
+        else 
+            volume = 50;
+
         let opusStream = await ytdl(guildQueue.musics[0].url);
         /**
          * @type {import('discord.js').StreamDispatcher}
          */
-        guildQueue.dispatcher = guildQueue.connection.play(opusStream, {type: 'opus'});
+        guildQueue.dispatcher = guildQueue.connection.play(opusStream, {type: 'opus', volume: volume / 100});
 
         let embed = new MessageEmbed()
         .setTitle(`${guildQueue.musics[0].title}\u200b`)
@@ -36,7 +42,7 @@ module.exports = {
                 guildQueue.musics.shift();
             else
                 guildQueue.musics.push(guildQueue.musics.shift());
-            
+
             console.log('end');
             if (guildQueue.musics[0]) {
                 this.play(queue, message);
@@ -48,6 +54,7 @@ module.exports = {
                 guildQueue.connection = null;
                 guildQueue.onListen = false;
                 guildQueue.vChannel = null;
+                guildQueue.volume = null;
                 return message.channel.send('모든 음악을 재생했어요! 그러면 이제 가볼께요!');
             }
         });
@@ -98,6 +105,7 @@ module.exports = {
             queue.connection = null;
             queue.onListen = false;
             queue.vChannel = null;
+            queue.volume = null;
             return message.reply('음악을 정지하고 대기열을 초기화 했어요!');
         } else {
             let memberCount = message.member.voice.channel.members.size;
@@ -120,7 +128,8 @@ module.exports = {
                     queue.dispatcher = null;
                     queue.connection = null;
                     queue.onListen = false;
-                    queue.loop = false;
+                    queue.vChannel = null;
+                    queue.volume = null;
                     return message.reply('음악을 정지하고 대기열을 초기화 했어요!');
                 }     
             });
@@ -241,6 +250,7 @@ module.exports = {
         let volume = Number(args[0]);
         if (volume < 0.9 || volume > 100)   return message.reply('1 ~ 100을 입력해야돼요!');
 
+        queue.volume = volume;
         queue.dispatcher.setVolume(volume / 100);
         return message.reply('설정했어요!');
     },
